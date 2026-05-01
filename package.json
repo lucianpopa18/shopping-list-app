@@ -1,6 +1,6 @@
 
 {
-  "name": "shopping-list-v2",
+  "name": "shopping-list-ultra-premium",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,7 +12,8 @@
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.378.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
