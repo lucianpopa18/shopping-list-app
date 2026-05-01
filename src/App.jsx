@@ -78,7 +78,7 @@ export default function App() {
               value={item}
               onChange={e => setItem(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addItem()}
-              placeholder="Add something beautiful..."
+              placeholder="Add"
               className="glass rounded-2xl p-4 outline-none text-lg"
             />
             <div className="flex gap-3">
