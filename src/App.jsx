@@ -66,11 +66,8 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="glass rounded-3xl p-6 sticky top-4 z-10 mb-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold">Shopping List</h1>
-              <p className="text-zinc-400">Ultra Premium Grocery Experience</p>
-            </div>
+          <div className="flex items-center justify-center mb-4">
+            <h1 className="text-4xl font-bold">Shopping List</h1>
           </div>
 
           <div className="flex flex-col gap-3">
