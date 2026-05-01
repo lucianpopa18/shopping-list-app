@@ -1,95 +1,21 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Check, LogOut } from 'lucide-react'
+import { Plus, Trash2, Check } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 const stores = ['Albert Heijn', 'Polish Shop', 'Jumbo', 'Lidl', 'Kruidvat', 'Action']
 
-const USERS = { dudu: 'bubu', bubu: 'dudu' }
-
-// ── Simple login screen ───────────────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-
-  const submit = () => {
-    const u = username.trim().toLowerCase()
-    if (USERS[u] && USERS[u] === password.trim().toLowerCase()) {
-      onLogin(u)
-    } else {
-      setError('Wrong username or password.')
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="glass rounded-3xl p-10 max-w-sm w-full text-center"
-      >
-        <h1 className="text-3xl font-bold mb-1">Shopping List</h1>
-        <p className="text-zinc-500 mb-8 text-sm">Who are you?</p>
-
-        <div className="flex flex-col gap-3 text-left">
-          <input
-            value={username}
-            onChange={e => { setUsername(e.target.value); setError('') }}
-            onKeyDown={e => e.key === 'Enter' && submit()}
-            placeholder="Username"
-            className="glass rounded-2xl p-4 outline-none"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={e => { setPassword(e.target.value); setError('') }}
-            onKeyDown={e => e.key === 'Enter' && submit()}
-            placeholder="Password"
-            className="glass rounded-2xl p-4 outline-none"
-          />
-          {error && <p className="text-red-400 text-sm px-1">{error}</p>}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.02 }}
-            onClick={submit}
-            className="rounded-2xl py-4 bg-white text-black font-semibold text-base mt-1"
-          >
-            Enter
-          </motion.button>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-// ── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [userName, setUserName] = useState(() => localStorage.getItem('sl-user') || '')
-  const [items, setItems]         = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [item, setItem]           = useState('')
-  const [qty, setQty]             = useState(1)
-  const [store, setStore]         = useState(stores[0])
+  const [items, setItems]             = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [item, setItem]               = useState('')
+  const [qty, setQty]                 = useState(1)
+  const [store, setStore]             = useState(stores[0])
   const [activeStore, setActiveStore] = useState(stores[0])
   const channelRef = useRef(null)
 
-  const login = (name) => {
-    localStorage.setItem('sl-user', name)
-    setUserName(name)
-  }
-  const logout = () => {
-    localStorage.removeItem('sl-user')
-    setUserName('')
-    setItems([])
-    setLoading(true)
-  }
-
-  // Fetch + realtime subscription
   useEffect(() => {
-    if (!userName) return
-
     const fetchItems = async () => {
       const { data, error } = await supabase
         .from('shopping_items')
@@ -106,10 +32,7 @@ export default function App() {
         { event: '*', schema: 'public', table: 'shopping_items' },
         ({ eventType, new: row, old: oldRow }) => {
           if (eventType === 'INSERT') {
-            setItems(prev => {
-              if (prev.some(i => i.id === row.id)) return prev
-              return [...prev, row]
-            })
+            setItems(prev => prev.some(i => i.id === row.id) ? prev : [...prev, row])
           } else if (eventType === 'UPDATE') {
             setItems(prev => prev.map(i => i.id === row.id ? row : i))
           } else if (eventType === 'DELETE') {
@@ -119,16 +42,12 @@ export default function App() {
       )
       .subscribe()
 
-    return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current)
-    }
-  }, [userName])
-
-  if (!userName) return <LoginScreen onLogin={login} />
+    return () => { if (channelRef.current) supabase.removeChannel(channelRef.current) }
+  }, [])
 
   const addItem = async () => {
     if (!item.trim()) return
-    const payload = { name: item.trim(), quantity: qty, store, completed: false, added_by: userName }
+    const payload = { name: item.trim(), quantity: qty, store, completed: false }
     setItem('')
     setQty(1)
     await supabase.from('shopping_items').insert(payload)
@@ -153,24 +72,13 @@ export default function App() {
     <div className="min-h-screen p-4">
       <div className="max-w-2xl mx-auto">
 
-        {/* Add item card */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="glass rounded-3xl p-6 sticky top-4 z-10 mb-6"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1 text-center">
-              <h1 className="text-4xl font-bold">Shopping List</h1>
-            </div>
-            <button
-              onClick={logout}
-              title="Switch user"
-              className="ml-2 opacity-40 hover:opacity-80 transition flex items-center gap-1 text-xs text-zinc-400"
-            >
-              <LogOut size={14} />
-              {userName}
-            </button>
+          <div className="flex items-center justify-center mb-4">
+            <h1 className="text-4xl font-bold">Shopping List</h1>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -209,7 +117,6 @@ export default function App() {
           </div>
         </motion.div>
 
-        {/* Store tabs — wrapped grid */}
         <div className="grid grid-cols-2 gap-2 mb-6 sm:grid-cols-3">
           {stores.map(s => (
             <motion.button
@@ -225,19 +132,16 @@ export default function App() {
           ))}
         </div>
 
-        {/* List */}
         {loading ? (
           <div className="glass rounded-3xl p-10 text-center text-zinc-400">Loading...</div>
         ) : (
           <div className="space-y-3">
-
             {toBuy.length === 0 && bought.length === 0 && (
               <div className="glass rounded-3xl p-10 text-center text-zinc-400">
                 Your {activeStore} run is looking empty.
               </div>
             )}
 
-            {/* To Buy */}
             {toBuy.length > 0 && (
               <div>
                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 px-1">To Buy</p>
@@ -276,7 +180,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Bought */}
             {bought.length > 0 && (
               <div className="mt-4">
                 <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2 px-1">Bought</p>
@@ -315,9 +218,9 @@ export default function App() {
                 </AnimatePresence>
               </div>
             )}
-
           </div>
         )}
+
       </div>
     </div>
   )
