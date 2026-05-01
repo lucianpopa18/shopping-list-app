@@ -1,19 +1,11 @@
 
-# Shopping List
+# Shopping List — Ultra Premium
 
-Modern shopping list web app built with:
-- React
-- Vite
-- TailwindCSS
-
-## Installation
-
+## Install
 npm install
 
 ## Run
-
 npm run dev
 
 ## Build
-
 npm run build
