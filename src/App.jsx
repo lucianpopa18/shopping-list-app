@@ -1,72 +1,48 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Check } from 'lucide-react'
-import { supabase } from './lib/supabase'
 
 const stores = ['Albert Heijn', 'Polish Shop', 'Jumbo', 'Lidl', 'Kruidvat', 'Action']
 
 export default function App() {
-  const [items, setItems]             = useState([])
-  const [loading, setLoading]         = useState(true)
+  const [lists, setLists] = useState(() => {
+    return JSON.parse(localStorage.getItem('premium-shopping')) || {}
+  })
   const [item, setItem]               = useState('')
   const [qty, setQty]                 = useState(1)
   const [store, setStore]             = useState(stores[0])
   const [activeStore, setActiveStore] = useState(stores[0])
-  const channelRef = useRef(null)
 
   useEffect(() => {
-    const fetchItems = async () => {
-      const { data, error } = await supabase
-        .from('shopping_items')
-        .select('*')
-        .order('created_at', { ascending: true })
-      if (!error && data) setItems(data)
-      setLoading(false)
-    }
-    fetchItems()
+    localStorage.setItem('premium-shopping', JSON.stringify(lists))
+  }, [lists])
 
-    channelRef.current = supabase
-      .channel('shopping_realtime')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'shopping_items' },
-        ({ eventType, new: row, old: oldRow }) => {
-          if (eventType === 'INSERT') {
-            setItems(prev => prev.some(i => i.id === row.id) ? prev : [...prev, row])
-          } else if (eventType === 'UPDATE') {
-            setItems(prev => prev.map(i => i.id === row.id ? row : i))
-          } else if (eventType === 'DELETE') {
-            setItems(prev => prev.filter(i => i.id !== oldRow.id))
-          }
-        }
-      )
-      .subscribe()
-
-    return () => { if (channelRef.current) supabase.removeChannel(channelRef.current) }
-  }, [])
-
-  const addItem = async () => {
+  const addItem = () => {
     if (!item.trim()) return
-    const payload = { name: item.trim(), quantity: qty, store, completed: false }
+    const newItem = { id: Date.now(), name: item.trim(), qty, completed: false }
+    setLists(prev => ({ ...prev, [store]: [...(prev[store] || []), newItem] }))
     setItem('')
     setQty(1)
-    await supabase.from('shopping_items').insert(payload)
   }
 
-  const toggleItem = async (id, current) => {
-    await supabase
-      .from('shopping_items')
-      .update({ completed: !current, updated_at: new Date().toISOString() })
-      .eq('id', id)
+  const toggleItem = id => {
+    setLists(prev => ({
+      ...prev,
+      [activeStore]: prev[activeStore].map(i => i.id === id ? { ...i, completed: !i.completed } : i)
+    }))
   }
 
-  const deleteItem = async (id) => {
-    await supabase.from('shopping_items').delete().eq('id', id)
+  const deleteItem = id => {
+    setLists(prev => ({
+      ...prev,
+      [activeStore]: prev[activeStore].filter(i => i.id !== id)
+    }))
   }
 
-  const storeItems = items.filter(i => i.store === activeStore)
-  const toBuy      = storeItems.filter(i => !i.completed)
-  const bought     = storeItems.filter(i => i.completed)
+  const allItems = lists[activeStore] || []
+  const toBuy    = allItems.filter(i => !i.completed)
+  const bought   = allItems.filter(i => i.completed)
 
   return (
     <div className="min-h-screen p-4">
@@ -132,94 +108,90 @@ export default function App() {
           ))}
         </div>
 
-        {loading ? (
-          <div className="glass rounded-3xl p-10 text-center text-zinc-400">Loading...</div>
-        ) : (
-          <div className="space-y-3">
-            {toBuy.length === 0 && bought.length === 0 && (
-              <div className="glass rounded-3xl p-10 text-center text-zinc-400">
-                Your {activeStore} run is looking empty.
-              </div>
-            )}
+        <div className="space-y-3">
+          {toBuy.length === 0 && bought.length === 0 && (
+            <div className="glass rounded-3xl p-10 text-center text-zinc-400">
+              Your {activeStore} run is looking empty.
+            </div>
+          )}
 
-            {toBuy.length > 0 && (
-              <div>
-                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 px-1">To Buy</p>
-                <AnimatePresence initial={false}>
-                  {toBuy.map((i, index) => (
-                    <motion.div
-                      key={i.id}
-                      layout
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                      transition={{ delay: index * 0.04 }}
-                      className="glass rounded-3xl p-5 flex items-center justify-between mb-2"
-                    >
-                      <div className="flex items-center gap-4">
-                        <motion.button
-                          whileTap={{ scale: 0.85 }}
-                          onClick={() => toggleItem(i.id, i.completed)}
-                          className="w-7 h-7 rounded-full border border-white/30 flex items-center justify-center hover:border-white/70 transition-colors"
-                        />
-                        <div>
-                          <div className="text-lg font-medium">{i.name}</div>
-                          <div className="text-sm text-zinc-400">Quantity: {i.quantity}</div>
-                        </div>
-                      </div>
+          {toBuy.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 px-1">To Buy</p>
+              <AnimatePresence initial={false}>
+                {toBuy.map((i, index) => (
+                  <motion.div
+                    key={i.id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                    transition={{ delay: index * 0.04 }}
+                    className="glass rounded-3xl p-5 flex items-center justify-between mb-2"
+                  >
+                    <div className="flex items-center gap-4">
                       <motion.button
                         whileTap={{ scale: 0.85 }}
-                        onClick={() => deleteItem(i.id)}
-                        className="opacity-40 hover:opacity-100 transition"
-                      >
-                        <Trash2 size={18} />
-                      </motion.button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-
-            {bought.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2 px-1">Bought</p>
-                <AnimatePresence initial={false}>
-                  {bought.map(i => (
-                    <motion.div
-                      key={i.id}
-                      layout
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 0.45, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                      className="glass rounded-3xl p-5 flex items-center justify-between mb-2"
-                    >
-                      <div className="flex items-center gap-4">
-                        <motion.button
-                          whileTap={{ scale: 0.85 }}
-                          onClick={() => toggleItem(i.id, i.completed)}
-                          className="w-7 h-7 rounded-full bg-emerald-400 flex items-center justify-center"
-                        >
-                          <Check size={14} className="text-black" strokeWidth={3} />
-                        </motion.button>
-                        <div className="line-through">
-                          <div className="text-lg font-medium">{i.name}</div>
-                          <div className="text-sm text-zinc-400">Quantity: {i.quantity}</div>
-                        </div>
+                        onClick={() => toggleItem(i.id)}
+                        className="w-7 h-7 rounded-full border border-white/30 flex items-center justify-center hover:border-white/70 transition-colors"
+                      />
+                      <div>
+                        <div className="text-lg font-medium">{i.name}</div>
+                        <div className="text-sm text-zinc-400">Quantity: {i.qty}</div>
                       </div>
+                    </div>
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => deleteItem(i.id)}
+                      className="opacity-40 hover:opacity-100 transition"
+                    >
+                      <Trash2 size={18} />
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {bought.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2 px-1">Bought</p>
+              <AnimatePresence initial={false}>
+                {bought.map(i => (
+                  <motion.div
+                    key={i.id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 0.45, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                    className="glass rounded-3xl p-5 flex items-center justify-between mb-2"
+                  >
+                    <div className="flex items-center gap-4">
                       <motion.button
                         whileTap={{ scale: 0.85 }}
-                        onClick={() => deleteItem(i.id)}
-                        className="opacity-40 hover:opacity-100 transition"
+                        onClick={() => toggleItem(i.id)}
+                        className="w-7 h-7 rounded-full bg-emerald-400 flex items-center justify-center"
                       >
-                        <Trash2 size={18} />
+                        <Check size={14} className="text-black" strokeWidth={3} />
                       </motion.button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-          </div>
-        )}
+                      <div className="line-through">
+                        <div className="text-lg font-medium">{i.name}</div>
+                        <div className="text-sm text-zinc-400">Quantity: {i.qty}</div>
+                      </div>
+                    </div>
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => deleteItem(i.id)}
+                      className="opacity-40 hover:opacity-100 transition"
+                    >
+                      <Trash2 size={18} />
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>
