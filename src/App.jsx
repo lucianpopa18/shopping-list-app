@@ -322,8 +322,7 @@ export default function App() {
                     <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Mode</p>
                     <div className="glass rounded-2xl p-3">
                       <div className="mb-3">
-                        <div className="font-semibold">Choose vibe</div>
-                        <div className="text-xs text-zinc-500">Bubu is pink/soft. Dudu is the original dark mode.</div>
+                        <div className="font-semibold">Who are you?</div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <motion.button
