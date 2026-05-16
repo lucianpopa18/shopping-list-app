@@ -319,11 +319,8 @@ export default function App() {
 
                 <div className="space-y-5">
                   <section>
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Mode</p>
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Who are you?</p>
                     <div className="glass rounded-2xl p-3">
-                      <div className="mb-3">
-                        <div className="font-semibold">Who are you?</div>
-                      </div>
                       <div className="grid grid-cols-2 gap-2">
                         <motion.button
                           whileTap={{ scale: 0.96 }}
