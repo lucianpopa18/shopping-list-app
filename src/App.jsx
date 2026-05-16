@@ -7,6 +7,7 @@ const BUILT_IN_STORES = ['Albert Heijn', 'Polish Shop', 'Jumbo', 'Lidl', 'Kruidv
 const LISTS_KEY = 'premium-shopping'
 const STORES_KEY = 'premium-shopping-stores'
 const HIDDEN_STORES_KEY = 'premium-shopping-hidden-stores'
+const THEME_KEY = 'premium-shopping-theme'
 
 export default function App() {
   const [lists, setLists] = useState(() => {
@@ -39,6 +40,7 @@ export default function App() {
   const [newStoreName, setNewStoreName] = useState('')
 
   const [movingId, setMovingId] = useState(null)
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem(THEME_KEY) || 'classic')
 
   const importRef = useRef(null)
 
@@ -53,6 +55,16 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(HIDDEN_STORES_KEY, JSON.stringify(hiddenStores))
   }, [hiddenStores])
+
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, themeMode)
+    document.documentElement.classList.toggle('feminine-root', themeMode === 'feminine')
+    document.body.classList.toggle('feminine-body', themeMode === 'feminine')
+    return () => {
+      document.documentElement.classList.remove('feminine-root')
+      document.body.classList.remove('feminine-body')
+    }
+  }, [themeMode])
 
   const addItem = () => {
     if (!item.trim()) return
@@ -199,7 +211,7 @@ export default function App() {
   const bought   = allItems.filter(i => i.completed)
 
   return (
-    <div className="min-h-screen p-4">
+    <div className={`min-h-screen p-4 app-shell ${themeMode === 'feminine' ? 'feminine-mode' : 'classic-mode'}`}>
       <div className="max-w-2xl mx-auto">
 
         {/* Header */}
@@ -265,7 +277,10 @@ export default function App() {
             <motion.button
               key={s}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveStore(s)}
+              onClick={() => {
+                setActiveStore(s)
+                setStore(s)
+              }}
               className={`px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
                 activeStore === s ? 'bg-white text-black' : 'glass'
               }`}
@@ -303,6 +318,32 @@ export default function App() {
                 </div>
 
                 <div className="space-y-5">
+                  <section>
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Mode</p>
+                    <div className="glass rounded-2xl p-3">
+                      <div className="mb-3">
+                        <div className="font-semibold">Choose vibe</div>
+                        <div className="text-xs text-zinc-500">Bubu is pink/soft. Dudu is the original dark mode.</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => setThemeMode('feminine')}
+                          className={`mode-choice bubu ${themeMode === 'feminine' ? 'active' : ''}`}
+                        >
+                          Bubu
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => setThemeMode('classic')}
+                          className={`mode-choice dudu ${themeMode === 'classic' ? 'active' : ''}`}
+                        >
+                          Dudu
+                        </motion.button>
+                      </div>
+                    </div>
+                  </section>
+
                   <section>
                     <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Files</p>
                     <div className="grid grid-cols-2 gap-2">
@@ -427,7 +468,7 @@ export default function App() {
                             <div className="text-sm text-zinc-400">Quantity: {i.qty}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                           <motion.button whileTap={{ scale: 0.85 }} onClick={() => startEdit(i)} className="opacity-40 hover:opacity-100 transition"><Pencil size={16} /></motion.button>
                           <motion.button whileTap={{ scale: 0.85 }} onClick={() => { setMovingId(i.id); setEditingId(null) }} className="opacity-40 hover:opacity-100 transition"><MoveRight size={16} /></motion.button>
                           <motion.button whileTap={{ scale: 0.85 }} onClick={() => deleteItem(i.id)} className="opacity-40 hover:opacity-100 transition"><Trash2 size={18} /></motion.button>
@@ -496,7 +537,7 @@ export default function App() {
                             <div className="text-sm text-zinc-400">Quantity: {i.qty}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
                           <motion.button whileTap={{ scale: 0.85 }} onClick={() => startEdit(i)} className="opacity-40 hover:opacity-100 transition"><Pencil size={16} /></motion.button>
                           <motion.button whileTap={{ scale: 0.85 }} onClick={() => deleteItem(i.id)} className="opacity-40 hover:opacity-100 transition"><Trash2 size={18} /></motion.button>
                         </div>

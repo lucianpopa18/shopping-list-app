@@ -1,7 +1,11 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  min-height: 100%;
+  background: #09090b;
+}
 
 body {
   margin: 0;
@@ -14,8 +18,26 @@ body {
   font-family: Inter, sans-serif;
 }
 
+html.feminine-root,
+body.feminine-body {
+  background-color: #8f5fd7;
+  background-image:
+    radial-gradient(circle at 12% -12%, rgba(124, 58, 237, 0.88), transparent 34%),
+    radial-gradient(circle at 88% -10%, rgba(190, 24, 93, 0.56), transparent 32%),
+    radial-gradient(circle at 12% 102%, rgba(251, 207, 232, 0.78), transparent 34%),
+    radial-gradient(circle at 86% 100%, rgba(254, 215, 170, 0.58), transparent 38%),
+    linear-gradient(180deg, #8f5fd7 0%, #c487e8 18%, #f0b7d7 48%, #f8e7f4 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
 * {
   box-sizing: border-box;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  transition: background 0.45s ease, color 0.35s ease;
 }
 
 .glass {
@@ -23,4 +45,116 @@ body {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+.mode-choice {
+  min-height: 48px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  transition: transform 0.18s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.mode-choice.bubu {
+  background: linear-gradient(135deg, rgba(244,114,182,0.18), rgba(196,181,253,0.16));
+}
+
+.mode-choice.dudu {
+  background: rgba(255,255,255,0.08);
+}
+
+.mode-choice.active {
+  border-color: rgba(255,255,255,0.55);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+
+.mode-choice.bubu.active {
+  background: linear-gradient(135deg, #f472b6, #c084fc);
+  color: white;
+}
+
+.mode-choice.dudu.active {
+  background: white;
+  color: #09090b;
+}
+
+.feminine-mode {
+  color: #4a1630;
+  background:
+    radial-gradient(circle at 12% -12%, rgba(124, 58, 237, 0.88), transparent 34%),
+    radial-gradient(circle at 88% -10%, rgba(190, 24, 93, 0.56), transparent 32%),
+    radial-gradient(circle at 12% 102%, rgba(251, 207, 232, 0.78), transparent 34%),
+    radial-gradient(circle at 86% 100%, rgba(254, 215, 170, 0.58), transparent 38%),
+    linear-gradient(180deg, #8f5fd7 0%, #c487e8 18%, #f0b7d7 48%, #f8e7f4 100%);
+  background-attachment: fixed;
+}
+
+.feminine-mode .glass {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(244, 114, 182, 0.26);
+  box-shadow:
+    0 18px 45px rgba(190, 24, 93, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.feminine-mode h1 {
+  background: linear-gradient(135deg, #be185d, #9333ea, #f97316);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.feminine-mode input,
+.feminine-mode select {
+  color: #4a1630;
+  background: rgba(255, 255, 255, 0.58) !important;
+  border-color: rgba(244, 114, 182, 0.22) !important;
+}
+
+.feminine-mode input::placeholder {
+  color: rgba(131, 24, 67, 0.48);
+}
+
+.feminine-mode option {
+  color: #4a1630;
+}
+
+.feminine-mode button.bg-white,
+.feminine-mode .bg-white {
+  background: linear-gradient(135deg, #f472b6, #c084fc) !important;
+  color: white !important;
+  box-shadow: 0 12px 26px rgba(217, 70, 239, 0.22);
+}
+
+.feminine-mode .text-zinc-400,
+.feminine-mode .text-zinc-500,
+.feminine-mode .text-zinc-600 {
+  color: rgba(112, 26, 65, 0.58) !important;
+}
+
+.feminine-mode .text-red-300 {
+  color: #db2777 !important;
+}
+
+.feminine-mode .hover\:bg-red-500\/15:hover {
+  background: rgba(244, 114, 182, 0.16) !important;
+}
+
+.feminine-mode .bg-emerald-400 {
+  background: linear-gradient(135deg, #fb7185, #f0abfc) !important;
+}
+
+.feminine-mode .text-black {
+  color: white !important;
+}
+
+.feminine-mode .line-through {
+  color: rgba(74, 22, 48, 0.72);
+}
+
+.feminine-mode .fixed.inset-0 {
+  background: rgba(90, 24, 70, 0.28) !important;
 }
